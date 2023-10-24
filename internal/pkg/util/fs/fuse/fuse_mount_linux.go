@@ -258,8 +258,21 @@ func UnmountWithFuse(ctx context.Context, dir string) error {
 		return fmt.Errorf("fusermount not available while trying to perform unmount: %w", err)
 	}
 	sylog.Debugf("Executing FUSE unmount command: %s -u %s", fusermountCmd, dir)
-	execCmd := exec.CommandContext(ctx, fusermountCmd, "-u", dir)
+	execCmd := exec.CommandContext(ctx, fusermountCmd, "-z", dir)
 	execCmd.Stderr = os.Stderr
-	_, err = execCmd.Output()
+	out, err = execCmd.Output()
+	if err != nil {
+		log.Printf("TSZ: Error found: %s output: %s", err, out)
+		log.Printf("TSZ: details of err : %s", err.Error())
+		sylog.Debugf("DTSZ: Error found: %s output: %s", err, out)
+		sylog.Debugf("execCmd: %s", execCmd )
+		if exiterr, ok := err.(*exec.ExitError); ok {
+            log.Printf("TSZ: Exit Status: %d", exiterr.ExitCode())
+			sylog.Debugf("TSZ: Exit Status: %d", exiterr.ExitCode())
+        } else {
+            log.Printf("TSZ: Error details: %v", err)
+        }
+	}
+	
 	return err
 }
